@@ -1,11 +1,7 @@
-# Binaries
+# Binaries (root only — do not ignore cmd/server/)
+/agrifleet
+/server
 *.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-agrifleet
-server
 
 # Environment files — NEVER commit real secrets
 .env

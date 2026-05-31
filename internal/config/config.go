@@ -2,6 +2,8 @@ package config
 
 import (
 	"log"
+	"net/url"
+	"os"
 	"time"
 
 	"github.com/spf13/viper"
@@ -83,21 +85,44 @@ func Load() *Config {
 		refreshExpiry = 7 * 24 * time.Hour
 	}
 
+	port := viper.GetString("APP_PORT")
+	if port == "" {
+		port = os.Getenv("PORT")
+	}
+	if port == "" {
+		port = "8080"
+	}
+
+	dbCfg := DBConfig{
+		Host:     viper.GetString("DB_HOST"),
+		Port:     viper.GetString("DB_PORT"),
+		User:     viper.GetString("DB_USER"),
+		Password: viper.GetString("DB_PASSWORD"),
+		Name:     viper.GetString("DB_NAME"),
+		SSLMode:  viper.GetString("DB_SSLMODE"),
+		Timezone: viper.GetString("DB_TIMEZONE"),
+	}
+	if dbCfg.Host == "" {
+		dbCfg = parseDatabaseURL(os.Getenv("DATABASE_URL"), dbCfg)
+	}
+	if dbCfg.SSLMode == "" {
+		if dbCfg.Host != "" && dbCfg.Host != "localhost" {
+			dbCfg.SSLMode = "require"
+		} else {
+			dbCfg.SSLMode = "disable"
+		}
+	}
+	if dbCfg.Timezone == "" {
+		dbCfg.Timezone = "UTC"
+	}
+
 	return &Config{
 		App: AppConfig{
 			Env:  viper.GetString("APP_ENV"),
-			Port: viper.GetString("APP_PORT"),
+			Port: port,
 			Name: viper.GetString("APP_NAME"),
 		},
-		DB: DBConfig{
-			Host:     viper.GetString("DB_HOST"),
-			Port:     viper.GetString("DB_PORT"),
-			User:     viper.GetString("DB_USER"),
-			Password: viper.GetString("DB_PASSWORD"),
-			Name:     viper.GetString("DB_NAME"),
-			SSLMode:  viper.GetString("DB_SSLMODE"),
-			Timezone: viper.GetString("DB_TIMEZONE"),
-		},
+		DB: dbCfg,
 		Redis: RedisConfig{
 			Host:     viper.GetString("REDIS_HOST"),
 			Port:     viper.GetString("REDIS_PORT"),
@@ -125,4 +150,39 @@ func Load() *Config {
 			Origins: viper.GetString("CORS_ORIGINS"),
 		},
 	}
+}
+
+func parseDatabaseURL(raw string, fallback DBConfig) DBConfig {
+	if raw == "" {
+		return fallback
+	}
+
+	u, err := url.Parse(raw)
+	if err != nil {
+		log.Printf("config: invalid DATABASE_URL: %v", err)
+		return fallback
+	}
+
+	cfg := fallback
+	cfg.Host = u.Hostname()
+	if port := u.Port(); port != "" {
+		cfg.Port = port
+	} else {
+		cfg.Port = "5432"
+	}
+	if u.User != nil {
+		cfg.User = u.User.Username()
+		if password, ok := u.User.Password(); ok {
+			cfg.Password = password
+		}
+	}
+	cfg.Name = u.Path
+	if len(cfg.Name) > 0 && cfg.Name[0] == '/' {
+		cfg.Name = cfg.Name[1:]
+	}
+	if sslMode := u.Query().Get("sslmode"); sslMode != "" {
+		cfg.SSLMode = sslMode
+	}
+
+	return cfg
 }
