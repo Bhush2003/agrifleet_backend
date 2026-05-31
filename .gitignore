@@ -1,0 +1,36 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+agrifleet
+server
+
+# Environment files — NEVER commit real secrets
+.env
+.env.local
+.env.seed
+.env.production
+
+# Keep the example
+!.env.example
+
+# Build output
+/dist
+/build
+/uploads
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage.out
+coverage.html
