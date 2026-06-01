@@ -55,6 +55,20 @@ func AutoMigrate(db *gorm.DB) error {
 		&models.Revenue{},
 		&models.Project{},
 		&models.RefreshToken{},
+		// New enterprise models
+		&models.Farmer{},
+		&models.FarmerLedger{},
+		&models.Factory{},
+		&models.WeightSlip{},
+		&models.ApprovalRequest{},
+		&models.AuditLog{},
+		&models.MonthLock{},
+		&models.RecycleBin{},
+		&models.Notification{},
+		&models.Task{},
+		&models.Document{},
+		&models.Ledger{},
+		&models.SystemSetting{},
 	)
 	if err != nil {
 		return fmt.Errorf("database.AutoMigrate: %w", err)

@@ -1,42 +1,19 @@
 {
   "info": {
-    "_postman_id": "agrifleet-collection-001",
+    "_postman_id": "agrifleet-collection-v2",
     "name": "AgriFleet API",
-    "description": "Complete API collection for AgriFleet - Agriculture Machinery & Operations Management System.\n\n## Setup\n1. Import this collection\n2. Import `AgriFleet.postman_environment.json`\n3. Select **AgriFleet - Local** environment\n4. Run **Login** first — access_token & refresh_token are saved automatically\n5. All other requests use `{{access_token}}` automatically\n\n## Base URL\n`http://localhost:8080/api/v1`",
+    "description": "Complete API collection for AgriFleet - Agriculture Machinery & Operations Management System.\n\n## Setup\n1. Import this collection\n2. Import `AgriFleet.postman_environment.json`\n3. Select **AgriFleet - Local** environment\n4. Run **Login** first — access_token & refresh_token are saved automatically\n5. All other requests use `{{access_token}}` via collection-level Bearer auth\n\n## Roles\n- `owner` — full access\n- `supervisor` — create/update most resources\n- `accountant` — finance & payroll read/write\n- `driver` — read-only on most resources\n\n## Base URL\n`http://localhost:8080/api/v1`",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
     "type": "bearer",
-    "bearer": [
-      {
-        "key": "token",
-        "value": "{{access_token}}",
-        "type": "string"
-      }
-    ]
+    "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
   },
   "event": [
-    {
-      "listen": "prerequest",
-      "script": {
-        "type": "text/javascript",
-        "exec": [""]
-      }
-    },
-    {
-      "listen": "test",
-      "script": {
-        "type": "text/javascript",
-        "exec": [""]
-      }
-    }
+    { "listen": "prerequest", "script": { "type": "text/javascript", "exec": [""] } },
+    { "listen": "test",       "script": { "type": "text/javascript", "exec": [""] } }
   ],
-  "variable": [
-    {
-      "key": "base_url",
-      "value": "http://localhost:8080/api/v1"
-    }
-  ],
+  "variable": [{ "key": "base_url", "value": "http://localhost:8080/api/v1" }],
   "item": [
 
     {
@@ -44,84 +21,74 @@
       "item": [
         {
           "name": "Login",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "var json = pm.response.json();",
-                  "if (json.success && json.data) {",
-                  "  pm.environment.set('access_token', json.data.access_token);",
-                  "  pm.environment.set('refresh_token', json.data.refresh_token);",
-                  "  pm.test('Login successful', () => pm.response.to.have.status(200));",
-                  "  pm.test('Access token received', () => pm.expect(json.data.access_token).to.be.a('string'));",
-                  "  console.log('✅ Tokens saved to environment');",
-                  "} else {",
-                  "  pm.test('Login failed', () => pm.expect(json.success).to.be.true);",
-                  "}"
-                ]
-              }
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "var json = pm.response.json();",
+                "if (json.success && json.data) {",
+                "  pm.environment.set('access_token', json.data.access_token);",
+                "  pm.environment.set('refresh_token', json.data.refresh_token);",
+                "  pm.test('Login successful', () => pm.response.to.have.status(200));",
+                "  pm.test('Access token received', () => pm.expect(json.data.access_token).to.be.a('string'));",
+                "  console.log('✅ Tokens saved to environment');",
+                "} else {",
+                "  pm.test('Login failed', () => pm.expect(json.success).to.be.true);",
+                "}"
+              ]
             }
-          ],
+          }],
           "request": {
             "auth": { "type": "noauth" },
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"phone\": \"+1234567890\",\n  \"password\": \"password\"\n}"
-            },
+            "body": { "mode": "raw", "raw": "{\n  \"phone\": \"+1234567890\",\n  \"password\": \"password123\"\n}" },
             "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] },
-            "description": "Login with phone + password. Automatically saves access_token and refresh_token to environment."
+            "description": "Login with phone + password. Automatically saves access_token and refresh_token to environment.\n\nRequired fields:\n- `phone` (string)\n- `password` (string, min 6 chars)"
           }
         },
         {
           "name": "Refresh Token",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "var json = pm.response.json();",
-                  "if (json.success && json.data) {",
-                  "  pm.environment.set('access_token', json.data.access_token);",
-                  "  pm.environment.set('refresh_token', json.data.refresh_token);",
-                  "  pm.test('Token refreshed', () => pm.response.to.have.status(200));",
-                  "}"
-                ]
-              }
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "var json = pm.response.json();",
+                "if (json.success && json.data) {",
+                "  pm.environment.set('access_token', json.data.access_token);",
+                "  pm.environment.set('refresh_token', json.data.refresh_token);",
+                "  pm.test('Token refreshed', () => pm.response.to.have.status(200));",
+                "}"
+              ]
             }
-          ],
+          }],
           "request": {
             "auth": { "type": "noauth" },
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
-            },
-            "url": { "raw": "{{base_url}}/auth/refresh", "host": ["{{base_url}}"], "path": ["auth", "refresh"] }
+            "body": { "mode": "raw", "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}" },
+            "url": { "raw": "{{base_url}}/auth/refresh", "host": ["{{base_url}}"], "path": ["auth", "refresh"] },
+            "description": "Exchange a refresh token for a new token pair. Old refresh token is rotated (invalidated)."
           }
         },
         {
           "name": "Get My Profile",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Has user_id', () => pm.expect(pm.response.json().data).to.have.property('user_id'));"
-                ]
-              }
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                "pm.test('Has user_id', () => pm.expect(pm.response.json().data).to.have.property('user_id'));"
+              ]
             }
-          ],
+          }],
           "request": {
             "method": "GET",
-            "url": { "raw": "{{base_url}}/auth/me", "host": ["{{base_url}}"], "path": ["auth", "me"] }
+            "url": { "raw": "{{base_url}}/auth/me", "host": ["{{base_url}}"], "path": ["auth", "me"] },
+            "description": "Returns the authenticated user's ID and role from the JWT claims."
           }
         },
         {
@@ -129,12 +96,1052 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
-            },
-            "url": { "raw": "{{base_url}}/auth/logout", "host": ["{{base_url}}"], "path": ["auth", "logout"] }
+            "body": { "mode": "raw", "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}" },
+            "url": { "raw": "{{base_url}}/auth/logout", "host": ["{{base_url}}"], "path": ["auth", "logout"] },
+            "description": "Invalidates the provided refresh token. Access token remains valid until expiry."
           }
         }
       ]
     },
+
+    {
+      "name": "🚜 Machines",
+      "item": [
+        {
+          "name": "List Machines",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                "var json = pm.response.json();",
+                "if (json.data && json.data.length > 0) {",
+                "  pm.environment.set('machine_id', json.data[0].id);",
+                "  console.log('machine_id saved:', json.data[0].id);",
+                "}"
+              ]
+            }
+          }],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/machines?page=1&page_size=20&status=active&type=harvester",
+              "host": ["{{base_url}}"], "path": ["machines"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "page_size", "value": "20" },
+                { "key": "status", "value": "active", "description": "active | idle | maintenance | retired" },
+                { "key": "type", "value": "harvester", "description": "harvester | tractor | truck | loader | other", "disabled": true }
+              ]
+            },
+            "description": "List all machines with optional filters.\n\nQuery params:\n- `status`: active | idle | maintenance | retired\n- `type`: harvester | tractor | truck | loader | other\n- `page`, `page_size`"
+          }
+        },
+        {
+          "name": "Create Machine",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "var json = pm.response.json();",
+                "if (json.success && json.data) {",
+                "  pm.environment.set('machine_id', json.data.id);",
+                "  pm.test('Machine created', () => pm.response.to.have.status(201));",
+                "}"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Deere S780\",\n  \"type\": \"harvester\",\n  \"model\": \"S780\",\n  \"year\": 2022,\n  \"reg_number\": \"KCA 001A\",\n  \"current_location\": \"Farm A, Nakuru\",\n  \"notes\": \"Primary harvester for wheat season\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/machines", "host": ["{{base_url}}"], "path": ["machines"] },
+            "description": "Create a new machine. Requires `owner` or `supervisor` role.\n\nRequired: `name`, `type`, `reg_number`\nType values: harvester | tractor | truck | loader | other"
+          }
+        },
+        {
+          "name": "Get Machine by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/machines/{{machine_id}}", "host": ["{{base_url}}"], "path": ["machines", "{{machine_id}}"] },
+            "description": "Get a single machine with full details."
+          }
+        },
+        {
+          "name": "Update Machine",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Deere S780 Updated\",\n  \"status\": \"maintenance\",\n  \"current_location\": \"Workshop, Nairobi\",\n  \"notes\": \"Sent for annual service\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/machines/{{machine_id}}", "host": ["{{base_url}}"], "path": ["machines", "{{machine_id}}"] },
+            "description": "Update machine details. Requires `owner` or `supervisor` role.\n\nStatus values: active | idle | maintenance | retired"
+          }
+        },
+        {
+          "name": "Delete Machine",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{base_url}}/machines/{{machine_id}}", "host": ["{{base_url}}"], "path": ["machines", "{{machine_id}}"] },
+            "description": "Soft-delete a machine. Requires `owner` role only."
+          }
+        },
+        {
+          "name": "Add Machine Log",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2026-06-01\",\n  \"working_hours\": 8.5,\n  \"location\": \"Farm B, Eldoret\",\n  \"notes\": \"Harvested north field\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/machines/{{machine_id}}/logs", "host": ["{{base_url}}"], "path": ["machines", "{{machine_id}}", "logs"] },
+            "description": "Record daily working hours for a machine. `operator_id` defaults to the authenticated user."
+          }
+        },
+        {
+          "name": "List Machine Logs",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/machines/{{machine_id}}/logs?page=1&page_size=20",
+              "host": ["{{base_url}}"], "path": ["machines", "{{machine_id}}", "logs"],
+              "query": [{ "key": "page", "value": "1" }, { "key": "page_size", "value": "20" }]
+            },
+            "description": "Paginated list of daily logs for a specific machine."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "👷 Workforce",
+      "item": [
+        {
+          "name": "Drivers",
+          "item": [
+            {
+              "name": "List Drivers",
+              "event": [{
+                "listen": "test",
+                "script": {
+                  "type": "text/javascript",
+                  "exec": [
+                    "var json = pm.response.json();",
+                    "if (json.data && json.data.length > 0) {",
+                    "  pm.environment.set('driver_id', json.data[0].id);",
+                    "}"
+                  ]
+                }
+              }],
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/drivers?page=1&page_size=20",
+                  "host": ["{{base_url}}"], "path": ["drivers"],
+                  "query": [{ "key": "page", "value": "1" }, { "key": "page_size", "value": "20" }]
+                }
+              }
+            },
+            {
+              "name": "Create Driver",
+              "event": [{
+                "listen": "test",
+                "script": {
+                  "type": "text/javascript",
+                  "exec": [
+                    "var json = pm.response.json();",
+                    "if (json.success && json.data) pm.environment.set('driver_id', json.data.id);"
+                  ]
+                }
+              }],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user_id\": \"00000000-0000-0000-0000-000000000001\",\n  \"license_number\": \"DL-2024-001\",\n  \"license_expiry\": \"2027-12-31\",\n  \"machine_id\": \"{{machine_id}}\"\n}"
+                },
+                "url": { "raw": "{{base_url}}/drivers", "host": ["{{base_url}}"], "path": ["drivers"] },
+                "description": "Link a user account to a driver profile. Requires `owner` or `supervisor` role.\n\nRequired: `user_id` (UUID), `license_number`, `license_expiry` (YYYY-MM-DD)"
+              }
+            },
+            {
+              "name": "Get Driver by ID",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{base_url}}/drivers/{{driver_id}}", "host": ["{{base_url}}"], "path": ["drivers", "{{driver_id}}"] }
+              }
+            },
+            {
+              "name": "Update Driver",
+              "request": {
+                "method": "PUT",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user_id\": \"00000000-0000-0000-0000-000000000001\",\n  \"license_number\": \"DL-2024-001-UPDATED\",\n  \"license_expiry\": \"2028-12-31\",\n  \"machine_id\": \"{{machine_id}}\"\n}"
+                },
+                "url": { "raw": "{{base_url}}/drivers/{{driver_id}}", "host": ["{{base_url}}"], "path": ["drivers", "{{driver_id}}"] }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Workers",
+          "item": [
+            {
+              "name": "List Workers",
+              "event": [{
+                "listen": "test",
+                "script": {
+                  "type": "text/javascript",
+                  "exec": [
+                    "var json = pm.response.json();",
+                    "if (json.data && json.data.length > 0) pm.environment.set('worker_id', json.data[0].id);"
+                  ]
+                }
+              }],
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/workers?page=1&page_size=20",
+                  "host": ["{{base_url}}"], "path": ["workers"],
+                  "query": [{ "key": "page", "value": "1" }, { "key": "page_size", "value": "20" }]
+                }
+              }
+            },
+            {
+              "name": "Create Worker",
+              "event": [{
+                "listen": "test",
+                "script": {
+                  "type": "text/javascript",
+                  "exec": [
+                    "var json = pm.response.json();",
+                    "if (json.success && json.data) pm.environment.set('worker_id', json.data.id);"
+                  ]
+                }
+              }],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"James Mwangi\",\n  \"phone\": \"+254712345678\",\n  \"role\": \"Field Laborer\",\n  \"daily_wage\": 800,\n  \"join_date\": \"2026-01-15\"\n}"
+                },
+                "url": { "raw": "{{base_url}}/workers", "host": ["{{base_url}}"], "path": ["workers"] },
+                "description": "Create a field worker. Requires `owner` or `supervisor` role.\n\nRequired: `name`, `daily_wage` (≥0)"
+              }
+            },
+            {
+              "name": "Get Worker by ID",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{base_url}}/workers/{{worker_id}}", "host": ["{{base_url}}"], "path": ["workers", "{{worker_id}}"] }
+              }
+            },
+            {
+              "name": "Update Worker",
+              "request": {
+                "method": "PUT",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"James Mwangi\",\n  \"phone\": \"+254712345678\",\n  \"role\": \"Senior Field Laborer\",\n  \"daily_wage\": 1000\n}"
+                },
+                "url": { "raw": "{{base_url}}/workers/{{worker_id}}", "host": ["{{base_url}}"], "path": ["workers", "{{worker_id}}"] }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Attendance",
+          "item": [
+            {
+              "name": "Mark Attendance (Bulk)",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"records\": [\n    {\n      \"worker_id\": \"{{worker_id}}\",\n      \"date\": \"2026-06-01\",\n      \"status\": \"present\",\n      \"notes\": \"On time\"\n    },\n    {\n      \"worker_id\": \"{{worker_id}}\",\n      \"date\": \"2026-06-02\",\n      \"status\": \"half_day\",\n      \"notes\": \"Left early\"\n    }\n  ]\n}"
+                },
+                "url": { "raw": "{{base_url}}/attendance", "host": ["{{base_url}}"], "path": ["attendance"] },
+                "description": "Mark attendance for one or more workers in a single request.\n\nStatus values: present | absent | half_day | on_leave\n\nWage is auto-calculated: present = full daily_wage, half_day = daily_wage/2"
+              }
+            },
+            {
+              "name": "List Attendance",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/attendance?page=1&page_size=20&worker_id={{worker_id}}&from=2026-06-01&to=2026-06-30",
+                  "host": ["{{base_url}}"], "path": ["attendance"],
+                  "query": [
+                    { "key": "page", "value": "1" },
+                    { "key": "page_size", "value": "20" },
+                    { "key": "worker_id", "value": "{{worker_id}}", "description": "Filter by worker UUID" },
+                    { "key": "from", "value": "2026-06-01" },
+                    { "key": "to", "value": "2026-06-30" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Payroll Summary",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/payroll?from=2026-06-01&to=2026-06-30",
+                  "host": ["{{base_url}}"], "path": ["payroll"],
+                  "query": [{ "key": "from", "value": "2026-06-01" }, { "key": "to", "value": "2026-06-30" }]
+                },
+                "description": "Calculate payroll for all workers in a date range. Requires `owner` or `accountant` role.\n\nBoth `from` and `to` are required (YYYY-MM-DD)."
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "⛽ Fuel",
+      "item": [
+        {
+          "name": "List Fuel Entries",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "var json = pm.response.json();",
+                "if (json.data && json.data.length > 0) pm.environment.set('fuel_id', json.data[0].id);"
+              ]
+            }
+          }],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/fuel?page=1&page_size=20&machine_id={{machine_id}}&from=2026-05-01&to=2026-06-01",
+              "host": ["{{base_url}}"], "path": ["fuel"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "page_size", "value": "20" },
+                { "key": "machine_id", "value": "{{machine_id}}", "description": "Filter by machine UUID", "disabled": true },
+                { "key": "from", "value": "2026-05-01", "disabled": true },
+                { "key": "to", "value": "2026-06-01", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Fuel Entry",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "var json = pm.response.json();",
+                "if (json.success && json.data) pm.environment.set('fuel_id', json.data.id);"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"machine_id\": \"{{machine_id}}\",\n  \"date\": \"2026-06-01\",\n  \"liters\": 150.5,\n  \"cost_per_liter\": 185.0,\n  \"odometer\": 12500,\n  \"notes\": \"Full tank before harvest\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/fuel", "host": ["{{base_url}}"], "path": ["fuel"] },
+            "description": "Record a fuel fill-up. `total_cost` is auto-calculated as `liters × cost_per_liter`.\n\nRequired: `machine_id`, `date`, `liters` (>0), `cost_per_liter` (>0)"
+          }
+        },
+        {
+          "name": "Get Fuel Entry by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/fuel/{{fuel_id}}", "host": ["{{base_url}}"], "path": ["fuel", "{{fuel_id}}"] }
+          }
+        },
+        {
+          "name": "Update Fuel Entry",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"machine_id\": \"{{machine_id}}\",\n  \"date\": \"2026-06-01\",\n  \"liters\": 160.0,\n  \"cost_per_liter\": 185.0,\n  \"odometer\": 12500,\n  \"notes\": \"Corrected quantity\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/fuel/{{fuel_id}}", "host": ["{{base_url}}"], "path": ["fuel", "{{fuel_id}}"] }
+          }
+        },
+        {
+          "name": "Delete Fuel Entry",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{base_url}}/fuel/{{fuel_id}}", "host": ["{{base_url}}"], "path": ["fuel", "{{fuel_id}}"] },
+            "description": "Requires `owner` or `accountant` role."
+          }
+        },
+        {
+          "name": "Get Fuel Analytics",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/fuel/analytics?from=2026-05-01&to=2026-06-01",
+              "host": ["{{base_url}}"], "path": ["fuel", "analytics"],
+              "query": [{ "key": "from", "value": "2026-05-01" }, { "key": "to", "value": "2026-06-01" }]
+            },
+            "description": "Aggregated fuel consumption and cost analytics per machine for the given period. Defaults to last 30 days."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "🔧 Maintenance",
+      "item": [
+        {
+          "name": "List Maintenance Records",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "var json = pm.response.json();",
+                "if (json.data && json.data.length > 0) pm.environment.set('maintenance_id', json.data[0].id);"
+              ]
+            }
+          }],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/maintenance?page=1&page_size=20&machine_id={{machine_id}}",
+              "host": ["{{base_url}}"], "path": ["maintenance"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "page_size", "value": "20" },
+                { "key": "machine_id", "value": "{{machine_id}}", "description": "Filter by machine UUID", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Maintenance Record",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "var json = pm.response.json();",
+                "if (json.success && json.data) pm.environment.set('maintenance_id', json.data.id);"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"machine_id\": \"{{machine_id}}\",\n  \"type\": \"scheduled\",\n  \"date\": \"2026-06-01\",\n  \"description\": \"Annual engine service and oil change\",\n  \"cost\": 45000,\n  \"next_due_date\": \"2027-06-01\",\n  \"technician\": \"John Kamau\",\n  \"notes\": \"Replaced air filter and spark plugs\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/maintenance", "host": ["{{base_url}}"], "path": ["maintenance"] },
+            "description": "Log a maintenance event. Status defaults to `pending`.\n\nRequired: `machine_id`, `type`, `date`, `description`\nType values: scheduled | breakdown | preventive"
+          }
+        },
+        {
+          "name": "Get Maintenance Record by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/maintenance/{{maintenance_id}}", "host": ["{{base_url}}"], "path": ["maintenance", "{{maintenance_id}}"] }
+          }
+        },
+        {
+          "name": "Update Maintenance Record",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"machine_id\": \"{{machine_id}}\",\n  \"type\": \"scheduled\",\n  \"date\": \"2026-06-01\",\n  \"description\": \"Annual engine service - completed\",\n  \"cost\": 48000,\n  \"next_due_date\": \"2027-06-01\",\n  \"technician\": \"John Kamau\",\n  \"notes\": \"Also replaced timing belt\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/maintenance/{{maintenance_id}}", "host": ["{{base_url}}"], "path": ["maintenance", "{{maintenance_id}}"] }
+          }
+        },
+        {
+          "name": "List Upcoming Maintenance",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/maintenance/upcoming?days=30",
+              "host": ["{{base_url}}"], "path": ["maintenance", "upcoming"],
+              "query": [{ "key": "days", "value": "30", "description": "Look-ahead window in days (default: 30)" }]
+            },
+            "description": "Returns maintenance records with `next_due_date` within the specified number of days."
+          }
+        },
+        {
+          "name": "List Overdue Maintenance",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/maintenance/overdue", "host": ["{{base_url}}"], "path": ["maintenance", "overdue"] },
+            "description": "Returns maintenance records where `next_due_date` has passed and status is not completed."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "📦 Inventory (Spare Parts)",
+      "item": [
+        {
+          "name": "List Spare Parts",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "var json = pm.response.json();",
+                "if (json.data && json.data.length > 0) pm.environment.set('spare_part_id', json.data[0].id);"
+              ]
+            }
+          }],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/spare-parts?page=1&page_size=20",
+              "host": ["{{base_url}}"], "path": ["spare-parts"],
+              "query": [{ "key": "page", "value": "1" }, { "key": "page_size", "value": "20" }]
+            }
+          }
+        },
+        {
+          "name": "Create Spare Part",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "var json = pm.response.json();",
+                "if (json.success && json.data) pm.environment.set('spare_part_id', json.data.id);"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Engine Oil Filter\",\n  \"category\": \"Filters\",\n  \"unit\": \"piece\",\n  \"min_stock_level\": 5,\n  \"unit_cost\": 1200\n}"
+            },
+            "url": { "raw": "{{base_url}}/spare-parts", "host": ["{{base_url}}"], "path": ["spare-parts"] },
+            "description": "Create a new spare part / consumable. Requires `owner` or `supervisor` role.\n\nRequired: `name` (min 2 chars)"
+          }
+        },
+        {
+          "name": "Get Spare Part by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/spare-parts/{{spare_part_id}}", "host": ["{{base_url}}"], "path": ["spare-parts", "{{spare_part_id}}"] }
+          }
+        },
+        {
+          "name": "Update Spare Part",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Engine Oil Filter - Premium\",\n  \"category\": \"Filters\",\n  \"unit\": \"piece\",\n  \"min_stock_level\": 10,\n  \"unit_cost\": 1500\n}"
+            },
+            "url": { "raw": "{{base_url}}/spare-parts/{{spare_part_id}}", "host": ["{{base_url}}"], "path": ["spare-parts", "{{spare_part_id}}"] },
+            "description": "Requires `owner` or `supervisor` role."
+          }
+        },
+        {
+          "name": "Stock In",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 20,\n  \"reference_type\": \"purchase_order\",\n  \"notes\": \"Received from supplier ABC\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/spare-parts/{{spare_part_id}}/stock-in", "host": ["{{base_url}}"], "path": ["spare-parts", "{{spare_part_id}}", "stock-in"] },
+            "description": "Add stock for a spare part. `current_stock` is incremented automatically.\n\nRequired: `quantity` (>0)"
+          }
+        },
+        {
+          "name": "Stock Out",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 2,\n  \"reference_type\": \"maintenance\",\n  \"reference_id\": \"{{maintenance_id}}\",\n  \"notes\": \"Used for engine service\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/spare-parts/{{spare_part_id}}/stock-out", "host": ["{{base_url}}"], "path": ["spare-parts", "{{spare_part_id}}", "stock-out"] },
+            "description": "Deduct stock. Returns 400 if insufficient stock.\n\nRequired: `quantity` (>0)"
+          }
+        },
+        {
+          "name": "List Low Stock Items",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/spare-parts/low-stock", "host": ["{{base_url}}"], "path": ["spare-parts", "low-stock"] },
+            "description": "Returns all spare parts where `current_stock` ≤ `min_stock_level`."
+          }
+        },
+        {
+          "name": "List Stock Movements",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/stock-movements?page=1&page_size=20&spare_part_id={{spare_part_id}}",
+              "host": ["{{base_url}}"], "path": ["stock-movements"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "page_size", "value": "20" },
+                { "key": "spare_part_id", "value": "{{spare_part_id}}", "description": "Filter by spare part UUID", "disabled": true }
+              ]
+            },
+            "description": "Full audit trail of all stock-in and stock-out movements."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "🌾 Harvesting",
+      "item": [
+        {
+          "name": "List Harvesting Jobs",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "var json = pm.response.json();",
+                "if (json.data && json.data.length > 0) pm.environment.set('job_id', json.data[0].id);"
+              ]
+            }
+          }],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/harvesting/jobs?page=1&page_size=20&status=active",
+              "host": ["{{base_url}}"], "path": ["harvesting", "jobs"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "page_size", "value": "20" },
+                { "key": "status", "value": "active", "description": "upcoming | active | completed | cancelled", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Harvesting Job",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "var json = pm.response.json();",
+                "if (json.success && json.data) pm.environment.set('job_id', json.data.id);"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"farm_name\": \"Kamau Farm\",\n  \"location\": \"Nakuru, Rift Valley\",\n  \"crop_type\": \"Wheat\",\n  \"start_date\": \"2026-06-10\",\n  \"total_acres\": 250,\n  \"machine_id\": \"{{machine_id}}\",\n  \"notes\": \"Client expects completion in 5 days\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/harvesting/jobs", "host": ["{{base_url}}"], "path": ["harvesting", "jobs"] },
+            "description": "Create a harvesting job/contract. Status defaults to `upcoming`. Requires `owner` or `supervisor` role.\n\nRequired: `farm_name`, `start_date` (YYYY-MM-DD)"
+          }
+        },
+        {
+          "name": "Get Harvesting Job by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/harvesting/jobs/{{job_id}}", "host": ["{{base_url}}"], "path": ["harvesting", "jobs", "{{job_id}}"] }
+          }
+        },
+        {
+          "name": "Update Harvesting Job",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"farm_name\": \"Kamau Farm\",\n  \"location\": \"Nakuru, Rift Valley\",\n  \"crop_type\": \"Wheat\",\n  \"start_date\": \"2026-06-10\",\n  \"total_acres\": 280,\n  \"machine_id\": \"{{machine_id}}\",\n  \"notes\": \"Expanded to include south field\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/harvesting/jobs/{{job_id}}", "host": ["{{base_url}}"], "path": ["harvesting", "jobs", "{{job_id}}"] },
+            "description": "Requires `owner` or `supervisor` role."
+          }
+        },
+        {
+          "name": "Add Harvesting Log",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2026-06-10\",\n  \"machine_id\": \"{{machine_id}}\",\n  \"driver_id\": \"{{driver_id}}\",\n  \"acres_done\": 45.5,\n  \"tonnage\": 182.0,\n  \"notes\": \"Good conditions, no breakdowns\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/harvesting/jobs/{{job_id}}/logs", "host": ["{{base_url}}"], "path": ["harvesting", "jobs", "{{job_id}}", "logs"] },
+            "description": "Record daily progress for a harvesting job.\n\nRequired: `date`, `machine_id`"
+          }
+        },
+        {
+          "name": "List Harvesting Logs",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/harvesting/jobs/{{job_id}}/logs?page=1&page_size=20",
+              "host": ["{{base_url}}"], "path": ["harvesting", "jobs", "{{job_id}}", "logs"],
+              "query": [{ "key": "page", "value": "1" }, { "key": "page_size", "value": "20" }]
+            }
+          }
+        },
+        {
+          "name": "Get Job Summary",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/harvesting/jobs/{{job_id}}/summary", "host": ["{{base_url}}"], "path": ["harvesting", "jobs", "{{job_id}}", "summary"] },
+            "description": "Aggregated summary: total acres done, total tonnage, number of logs for the job."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "🚛 Transport",
+      "item": [
+        {
+          "name": "List Trips",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "var json = pm.response.json();",
+                "if (json.data && json.data.length > 0) pm.environment.set('trip_id', json.data[0].id);"
+              ]
+            }
+          }],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/transport/trips?page=1&page_size=20&from=2026-05-01&to=2026-06-30",
+              "host": ["{{base_url}}"], "path": ["transport", "trips"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "page_size", "value": "20" },
+                { "key": "job_id", "value": "{{job_id}}", "description": "Filter by harvesting job UUID", "disabled": true },
+                { "key": "truck_id", "value": "{{machine_id}}", "description": "Filter by truck UUID", "disabled": true },
+                { "key": "driver_id", "value": "{{driver_id}}", "description": "Filter by driver UUID", "disabled": true },
+                { "key": "from", "value": "2026-05-01", "disabled": true },
+                { "key": "to", "value": "2026-06-30", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Trip",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "var json = pm.response.json();",
+                "if (json.success && json.data) pm.environment.set('trip_id', json.data.id);"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"truck_id\": \"{{machine_id}}\",\n  \"driver_id\": \"{{driver_id}}\",\n  \"date\": \"2026-06-10\",\n  \"from_location\": \"Kamau Farm, Nakuru\",\n  \"to_location\": \"Grain Depot, Nairobi\",\n  \"loads\": 3,\n  \"tonnage\": 45.0,\n  \"rate_per_ton\": 2500,\n  \"job_id\": \"{{job_id}}\",\n  \"notes\": \"Delivered to main depot\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/transport/trips", "host": ["{{base_url}}"], "path": ["transport", "trips"] },
+            "description": "Record a transport trip. `total_amount` is auto-calculated as `tonnage × rate_per_ton`.\n\nRequired: `truck_id`, `driver_id`, `date`, `loads` (≥1)"
+          }
+        },
+        {
+          "name": "Get Trip by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/transport/trips/{{trip_id}}", "host": ["{{base_url}}"], "path": ["transport", "trips", "{{trip_id}}"] }
+          }
+        },
+        {
+          "name": "Update Trip",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"truck_id\": \"{{machine_id}}\",\n  \"driver_id\": \"{{driver_id}}\",\n  \"date\": \"2026-06-10\",\n  \"from_location\": \"Kamau Farm, Nakuru\",\n  \"to_location\": \"Grain Depot, Nairobi\",\n  \"loads\": 4,\n  \"tonnage\": 60.0,\n  \"rate_per_ton\": 2500,\n  \"notes\": \"Corrected load count\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/transport/trips/{{trip_id}}", "host": ["{{base_url}}"], "path": ["transport", "trips", "{{trip_id}}"] }
+          }
+        },
+        {
+          "name": "Get Transport Summary",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/transport/summary?from=2026-05-01&to=2026-06-30",
+              "host": ["{{base_url}}"], "path": ["transport", "summary"],
+              "query": [{ "key": "from", "value": "2026-05-01" }, { "key": "to", "value": "2026-06-30" }]
+            },
+            "description": "Aggregated transport stats per truck/driver for the period. Defaults to last 30 days."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "💰 Finance",
+      "item": [
+        {
+          "name": "Expenses",
+          "item": [
+            {
+              "name": "List Expenses",
+              "event": [{
+                "listen": "test",
+                "script": {
+                  "type": "text/javascript",
+                  "exec": [
+                    "var json = pm.response.json();",
+                    "if (json.data && json.data.length > 0) pm.environment.set('expense_id', json.data[0].id);"
+                  ]
+                }
+              }],
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/expenses?page=1&page_size=20&from=2026-05-01&to=2026-06-30",
+                  "host": ["{{base_url}}"], "path": ["expenses"],
+                  "query": [
+                    { "key": "page", "value": "1" },
+                    { "key": "page_size", "value": "20" },
+                    { "key": "category", "value": "fuel", "description": "fuel | maintenance | salary | transport | other", "disabled": true },
+                    { "key": "machine_id", "value": "{{machine_id}}", "description": "Filter by machine UUID", "disabled": true },
+                    { "key": "from", "value": "2026-05-01", "disabled": true },
+                    { "key": "to", "value": "2026-06-30", "disabled": true }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Expense",
+              "event": [{
+                "listen": "test",
+                "script": {
+                  "type": "text/javascript",
+                  "exec": [
+                    "var json = pm.response.json();",
+                    "if (json.success && json.data) pm.environment.set('expense_id', json.data.id);"
+                  ]
+                }
+              }],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"category\": \"maintenance\",\n  \"amount\": 45000,\n  \"date\": \"2026-06-01\",\n  \"machine_id\": \"{{machine_id}}\",\n  \"description\": \"Annual engine service\",\n  \"payment_mode\": \"bank_transfer\"\n}"
+                },
+                "url": { "raw": "{{base_url}}/expenses", "host": ["{{base_url}}"], "path": ["expenses"] },
+                "description": "Record an operational expense.\n\nRequired: `category`, `amount` (>0), `date`\nCategory: fuel | maintenance | salary | transport | other\nPayment mode: cash | bank_transfer | mobile_money | credit"
+              }
+            },
+            {
+              "name": "Get Expense by ID",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{base_url}}/expenses/{{expense_id}}", "host": ["{{base_url}}"], "path": ["expenses", "{{expense_id}}"] }
+              }
+            },
+            {
+              "name": "Update Expense",
+              "request": {
+                "method": "PUT",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"category\": \"maintenance\",\n  \"amount\": 48000,\n  \"date\": \"2026-06-01\",\n  \"description\": \"Annual engine service - final invoice\",\n  \"payment_mode\": \"bank_transfer\"\n}"
+                },
+                "url": { "raw": "{{base_url}}/expenses/{{expense_id}}", "host": ["{{base_url}}"], "path": ["expenses", "{{expense_id}}"] }
+              }
+            },
+            {
+              "name": "Delete Expense",
+              "request": {
+                "method": "DELETE",
+                "url": { "raw": "{{base_url}}/expenses/{{expense_id}}", "host": ["{{base_url}}"], "path": ["expenses", "{{expense_id}}"] },
+                "description": "Requires `owner` or `accountant` role."
+              }
+            }
+          ]
+        },
+        {
+          "name": "Revenues",
+          "item": [
+            {
+              "name": "List Revenues",
+              "event": [{
+                "listen": "test",
+                "script": {
+                  "type": "text/javascript",
+                  "exec": [
+                    "var json = pm.response.json();",
+                    "if (json.data && json.data.length > 0) pm.environment.set('revenue_id', json.data[0].id);"
+                  ]
+                }
+              }],
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/revenues?page=1&page_size=20&from=2026-05-01&to=2026-06-30",
+                  "host": ["{{base_url}}"], "path": ["revenues"],
+                  "query": [
+                    { "key": "page", "value": "1" },
+                    { "key": "page_size", "value": "20" },
+                    { "key": "from", "value": "2026-05-01", "disabled": true },
+                    { "key": "to", "value": "2026-06-30", "disabled": true }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Revenue",
+              "event": [{
+                "listen": "test",
+                "script": {
+                  "type": "text/javascript",
+                  "exec": [
+                    "var json = pm.response.json();",
+                    "if (json.success && json.data) pm.environment.set('revenue_id', json.data.id);"
+                  ]
+                }
+              }],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"source_type\": \"harvesting\",\n  \"source_id\": \"{{job_id}}\",\n  \"amount\": 350000,\n  \"date\": \"2026-06-15\",\n  \"description\": \"Payment for Kamau Farm harvest\",\n  \"payment_mode\": \"mobile_money\"\n}"
+                },
+                "url": { "raw": "{{base_url}}/revenues", "host": ["{{base_url}}"], "path": ["revenues"] },
+                "description": "Record income from any source.\n\nRequired: `source_type`, `amount` (>0), `date`\nSource type: harvesting | transport | project | other\nPayment mode: cash | bank_transfer | mobile_money | credit"
+              }
+            }
+          ]
+        },
+        {
+          "name": "P&L Summary",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/finance/summary?from=2026-05-01&to=2026-06-30",
+              "host": ["{{base_url}}"], "path": ["finance", "summary"],
+              "query": [{ "key": "from", "value": "2026-05-01" }, { "key": "to", "value": "2026-06-30" }]
+            },
+            "description": "Profit & Loss summary for the period. Requires `owner` or `accountant` role. Defaults to last 30 days."
+          }
+        },
+        {
+          "name": "Machine Profitability",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/finance/machine-profit?from=2026-05-01&to=2026-06-30",
+              "host": ["{{base_url}}"], "path": ["finance", "machine-profit"],
+              "query": [{ "key": "from", "value": "2026-05-01" }, { "key": "to", "value": "2026-06-30" }]
+            },
+            "description": "Revenue vs expenses breakdown per machine. Requires `owner` or `accountant` role."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "📊 Reports",
+      "item": [
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/reports/dashboard", "host": ["{{base_url}}"], "path": ["reports", "dashboard"] },
+            "description": "KPI summary for the last 30 days: total machines, active machines, P&L summary, fuel analytics."
+          }
+        },
+        {
+          "name": "Machine Report",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/reports/machines?from=2026-05-01&to=2026-06-30",
+              "host": ["{{base_url}}"], "path": ["reports", "machines"],
+              "query": [{ "key": "from", "value": "2026-05-01" }, { "key": "to", "value": "2026-06-30" }]
+            },
+            "description": "Machine utilization and profitability report. Defaults to last 30 days."
+          }
+        },
+        {
+          "name": "Fuel Report",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/reports/fuel?from=2026-05-01&to=2026-06-30",
+              "host": ["{{base_url}}"], "path": ["reports", "fuel"],
+              "query": [{ "key": "from", "value": "2026-05-01" }, { "key": "to", "value": "2026-06-30" }]
+            },
+            "description": "Fuel consumption analytics per machine. Defaults to last 30 days."
+          }
+        },
+        {
+          "name": "Workforce Report",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/reports/workforce?from=2026-05-01&to=2026-06-30",
+              "host": ["{{base_url}}"], "path": ["reports", "workforce"],
+              "query": [{ "key": "from", "value": "2026-05-01" }, { "key": "to", "value": "2026-06-30" }]
+            },
+            "description": "Attendance and payroll summary for all workers. Defaults to last 30 days."
+          }
+        },
+        {
+          "name": "Project Report",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/reports/projects?from=2026-05-01&to=2026-06-30",
+              "host": ["{{base_url}}"], "path": ["reports", "projects"],
+              "query": [{ "key": "from", "value": "2026-05-01" }, { "key": "to", "value": "2026-06-30" }]
+            },
+            "description": "Project-wise P&L summary. Defaults to last 30 days."
+          }
+        }
+      ]
+    }
+  ]
+}

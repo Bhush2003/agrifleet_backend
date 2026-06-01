@@ -21,6 +21,10 @@ func Setup(
 	transportH *handlers.TransportHandler,
 	financeH *handlers.FinanceHandler,
 	reportH *handlers.ReportHandler,
+	farmerH *handlers.FarmerHandler,
+	factoryH *handlers.FactoryHandler,
+	approvalH *handlers.ApprovalHandler,
+	auditH *handlers.AuditHandler,
 ) {
 	api := app.Group("/api/v1")
 
@@ -29,81 +33,96 @@ func Setup(
 	auth.Post("/login", authH.Login)
 	auth.Post("/refresh", authH.Refresh)
 
-	// ── Protected routes ───────────────────────────────────────────────────────
-	protected := api.Use(middleware.AuthMiddleware(jwtSecret))
+	// ── Protected ─────────────────────────────────────────────────────────────
+	p := api.Use(middleware.AuthMiddleware(jwtSecret))
 
-	protected.Post("/auth/logout", authH.Logout)
-	protected.Get("/auth/me", authH.Me)
+	p.Post("/auth/logout", authH.Logout)
+	p.Get("/auth/me", authH.Me)
 
 	// ── Machines ───────────────────────────────────────────────────────────────
-	machines := protected.Group("/machines")
+	machines := p.Group("/machines")
 	machines.Get("/", machineH.List)
-	machines.Post("/", middleware.RequireRoles(models.RoleOwner, models.RoleSupervisor), machineH.Create)
+	machines.Post("/",
+		middleware.RequirePermission(models.PermVehicleCreate), machineH.Create)
 	machines.Get("/:id", machineH.GetByID)
-	machines.Put("/:id", middleware.RequireRoles(models.RoleOwner, models.RoleSupervisor), machineH.Update)
-	machines.Delete("/:id", middleware.RequireRoles(models.RoleOwner), machineH.Delete)
+	machines.Put("/:id",
+		middleware.RequirePermission(models.PermVehicleUpdate), machineH.Update)
+	machines.Delete("/:id",
+		middleware.RequirePermission(models.PermVehicleDelete), machineH.Delete)
 	machines.Get("/:id/logs", machineH.ListLogs)
 	machines.Post("/:id/logs", machineH.AddLog)
 
 	// ── Workforce ──────────────────────────────────────────────────────────────
-	drivers := protected.Group("/drivers")
+	drivers := p.Group("/drivers")
 	drivers.Get("/", workforceH.ListDrivers)
-	drivers.Post("/", middleware.RequireRoles(models.RoleOwner, models.RoleSupervisor), workforceH.CreateDriver)
+	drivers.Post("/",
+		middleware.RequirePermission(models.PermEmployeeCreate), workforceH.CreateDriver)
 	drivers.Get("/:id", workforceH.GetDriver)
-	drivers.Put("/:id", middleware.RequireRoles(models.RoleOwner, models.RoleSupervisor), workforceH.UpdateDriver)
+	drivers.Put("/:id",
+		middleware.RequirePermission(models.PermEmployeeUpdate), workforceH.UpdateDriver)
 
-	workers := protected.Group("/workers")
+	workers := p.Group("/workers")
 	workers.Get("/", workforceH.ListWorkers)
-	workers.Post("/", middleware.RequireRoles(models.RoleOwner, models.RoleSupervisor), workforceH.CreateWorker)
+	workers.Post("/",
+		middleware.RequirePermission(models.PermEmployeeCreate), workforceH.CreateWorker)
 	workers.Get("/:id", workforceH.GetWorker)
-	workers.Put("/:id", middleware.RequireRoles(models.RoleOwner, models.RoleSupervisor), workforceH.UpdateWorker)
+	workers.Put("/:id",
+		middleware.RequirePermission(models.PermEmployeeUpdate), workforceH.UpdateWorker)
 
-	protected.Post("/attendance", workforceH.MarkAttendance)
-	protected.Get("/attendance", workforceH.ListAttendance)
-	protected.Get("/payroll", middleware.RequireRoles(models.RoleOwner, models.RoleAccountant), workforceH.GetPayroll)
+	p.Post("/attendance",
+		middleware.RequirePermission(models.PermAttendanceMark), workforceH.MarkAttendance)
+	p.Get("/attendance", workforceH.ListAttendance)
+	p.Get("/payroll",
+		middleware.RequirePermission(models.PermPayrollView), workforceH.GetPayroll)
 
 	// ── Fuel ───────────────────────────────────────────────────────────────────
-	fuel := protected.Group("/fuel")
+	fuel := p.Group("/fuel")
 	fuel.Get("/", fuelH.List)
-	fuel.Post("/", fuelH.Create)
+	fuel.Post("/",
+		middleware.RequirePermission(models.PermDieselCreate), fuelH.Create)
 	fuel.Get("/analytics", fuelH.GetAnalytics)
 	fuel.Get("/:id", fuelH.GetByID)
-	fuel.Put("/:id", fuelH.Update)
-	fuel.Delete("/:id", middleware.RequireRoles(models.RoleOwner, models.RoleAccountant), fuelH.Delete)
+	fuel.Put("/:id",
+		middleware.RequirePermission(models.PermDieselCreate), fuelH.Update)
+	fuel.Delete("/:id",
+		middleware.RequirePermission(models.PermDieselApprove), fuelH.Delete)
 
 	// ── Maintenance ────────────────────────────────────────────────────────────
-	maintenance := protected.Group("/maintenance")
-	maintenance.Get("/", maintenanceH.List)
-	maintenance.Post("/", maintenanceH.Create)
-	maintenance.Get("/upcoming", maintenanceH.ListUpcoming)
-	maintenance.Get("/overdue", maintenanceH.ListOverdue)
-	maintenance.Get("/:id", maintenanceH.GetByID)
-	maintenance.Put("/:id", maintenanceH.Update)
+	maint := p.Group("/maintenance")
+	maint.Get("/", maintenanceH.List)
+	maint.Post("/", maintenanceH.Create)
+	maint.Get("/upcoming", maintenanceH.ListUpcoming)
+	maint.Get("/overdue", maintenanceH.ListOverdue)
+	maint.Get("/:id", maintenanceH.GetByID)
+	maint.Put("/:id", maintenanceH.Update)
 
 	// ── Inventory ──────────────────────────────────────────────────────────────
-	spareParts := protected.Group("/spare-parts")
-	spareParts.Get("/", inventoryH.ListParts)
-	spareParts.Post("/", middleware.RequireRoles(models.RoleOwner, models.RoleSupervisor), inventoryH.CreatePart)
-	spareParts.Get("/low-stock", inventoryH.ListLowStock)
-	spareParts.Get("/:id", inventoryH.GetPart)
-	spareParts.Put("/:id", middleware.RequireRoles(models.RoleOwner, models.RoleSupervisor), inventoryH.UpdatePart)
-	spareParts.Post("/:id/stock-in", inventoryH.StockIn)
-	spareParts.Post("/:id/stock-out", inventoryH.StockOut)
-
-	protected.Get("/stock-movements", inventoryH.ListMovements)
+	parts := p.Group("/spare-parts")
+	parts.Get("/", inventoryH.ListParts)
+	parts.Post("/",
+		middleware.RequirePermission(models.PermExpenseCreate), inventoryH.CreatePart)
+	parts.Get("/low-stock", inventoryH.ListLowStock)
+	parts.Get("/:id", inventoryH.GetPart)
+	parts.Put("/:id",
+		middleware.RequirePermission(models.PermExpenseCreate), inventoryH.UpdatePart)
+	parts.Post("/:id/stock-in", inventoryH.StockIn)
+	parts.Post("/:id/stock-out", inventoryH.StockOut)
+	p.Get("/stock-movements", inventoryH.ListMovements)
 
 	// ── Harvesting ─────────────────────────────────────────────────────────────
-	harvesting := protected.Group("/harvesting/jobs")
-	harvesting.Get("/", harvestingH.ListJobs)
-	harvesting.Post("/", middleware.RequireRoles(models.RoleOwner, models.RoleSupervisor), harvestingH.CreateJob)
-	harvesting.Get("/:id", harvestingH.GetJob)
-	harvesting.Put("/:id", middleware.RequireRoles(models.RoleOwner, models.RoleSupervisor), harvestingH.UpdateJob)
-	harvesting.Post("/:id/logs", harvestingH.AddLog)
-	harvesting.Get("/:id/logs", harvestingH.ListLogs)
-	harvesting.Get("/:id/summary", harvestingH.GetJobSummary)
+	harvest := p.Group("/harvesting/jobs")
+	harvest.Get("/", harvestingH.ListJobs)
+	harvest.Post("/",
+		middleware.RequirePermission(models.PermIncomeCreate), harvestingH.CreateJob)
+	harvest.Get("/:id", harvestingH.GetJob)
+	harvest.Put("/:id",
+		middleware.RequirePermission(models.PermIncomeCreate), harvestingH.UpdateJob)
+	harvest.Post("/:id/logs", harvestingH.AddLog)
+	harvest.Get("/:id/logs", harvestingH.ListLogs)
+	harvest.Get("/:id/summary", harvestingH.GetJobSummary)
 
 	// ── Transport ──────────────────────────────────────────────────────────────
-	transport := protected.Group("/transport")
+	transport := p.Group("/transport")
 	transport.Get("/trips", transportH.List)
 	transport.Post("/trips", transportH.Create)
 	transport.Get("/summary", transportH.GetSummary)
@@ -111,25 +130,102 @@ func Setup(
 	transport.Put("/trips/:id", transportH.Update)
 
 	// ── Finance ────────────────────────────────────────────────────────────────
-	expenses := protected.Group("/expenses")
+	expenses := p.Group("/expenses")
 	expenses.Get("/", financeH.ListExpenses)
-	expenses.Post("/", financeH.CreateExpense)
+	expenses.Post("/",
+		middleware.RequirePermission(models.PermExpenseCreate), financeH.CreateExpense)
 	expenses.Get("/:id", financeH.GetExpense)
-	expenses.Put("/:id", financeH.UpdateExpense)
-	expenses.Delete("/:id", middleware.RequireRoles(models.RoleOwner, models.RoleAccountant), financeH.DeleteExpense)
+	expenses.Put("/:id",
+		middleware.RequirePermission(models.PermExpenseCreate), financeH.UpdateExpense)
+	expenses.Delete("/:id",
+		middleware.RequirePermission(models.PermExpenseApprove), financeH.DeleteExpense)
 
-	revenues := protected.Group("/revenues")
+	revenues := p.Group("/revenues")
 	revenues.Get("/", financeH.ListRevenues)
-	revenues.Post("/", financeH.CreateRevenue)
+	revenues.Post("/",
+		middleware.RequirePermission(models.PermIncomeCreate), financeH.CreateRevenue)
 
-	protected.Get("/finance/summary", middleware.RequireRoles(models.RoleOwner, models.RoleAccountant), financeH.GetPLSummary)
-	protected.Get("/finance/machine-profit", middleware.RequireRoles(models.RoleOwner, models.RoleAccountant), financeH.GetMachineProfitability)
+	p.Get("/finance/summary",
+		middleware.RequirePermission(models.PermReportFinancial), financeH.GetPLSummary)
+	p.Get("/finance/machine-profit",
+		middleware.RequirePermission(models.PermReportFinancial), financeH.GetMachineProfitability)
 
 	// ── Reports ────────────────────────────────────────────────────────────────
-	reports := protected.Group("/reports")
+	reports := p.Group("/reports")
 	reports.Get("/dashboard", reportH.Dashboard)
-	reports.Get("/machines", reportH.MachineReport)
-	reports.Get("/fuel", reportH.FuelReport)
-	reports.Get("/workforce", reportH.WorkforceReport)
-	reports.Get("/projects", reportH.ProjectReport)
+	reports.Get("/machines",
+		middleware.RequirePermission(models.PermReportView), reportH.MachineReport)
+	reports.Get("/fuel",
+		middleware.RequirePermission(models.PermReportView), reportH.FuelReport)
+	reports.Get("/workforce",
+		middleware.RequirePermission(models.PermReportView), reportH.WorkforceReport)
+	reports.Get("/projects",
+		middleware.RequirePermission(models.PermReportView), reportH.ProjectReport)
+
+	// ── Farmers ────────────────────────────────────────────────────────────────
+	farmers := p.Group("/farmers")
+	farmers.Get("/", farmerH.List)
+	farmers.Post("/",
+		middleware.RequirePermission(models.PermIncomeCreate), farmerH.Create)
+	farmers.Get("/:id", farmerH.GetByID)
+	farmers.Put("/:id",
+		middleware.RequirePermission(models.PermIncomeCreate), farmerH.Update)
+	farmers.Delete("/:id",
+		middleware.RequirePermission(models.PermIncomeApprove), farmerH.Delete)
+	farmers.Get("/:id/ledger", farmerH.GetLedger)
+
+	// ── Factories ──────────────────────────────────────────────────────────────
+	factories := p.Group("/factories")
+	factories.Get("/", factoryH.List)
+	factories.Post("/",
+		middleware.RequirePermission(models.PermIncomeCreate), factoryH.Create)
+	factories.Put("/:id",
+		middleware.RequirePermission(models.PermIncomeCreate), factoryH.Update)
+	factories.Delete("/:id",
+		middleware.RequirePermission(models.PermIncomeApprove), factoryH.Delete)
+	factories.Get("/:id/weight-slips", factoryH.ListWeightSlips)
+	factories.Post("/:id/weight-slips", factoryH.CreateWeightSlip)
+
+	// ── Approvals ──────────────────────────────────────────────────────────────
+	approvals := p.Group("/approvals")
+	approvals.Get("/", approvalH.List)
+	approvals.Post("/", approvalH.Submit)
+	approvals.Put("/:id/review",
+		middleware.RequirePermission(models.PermApprovalManage), approvalH.Review)
+
+	// ── Audit & Admin ──────────────────────────────────────────────────────────
+	p.Get("/audit/logs",
+		middleware.RequirePermission(models.PermAuditView), auditH.ListLogs)
+
+	// Notifications
+	p.Get("/notifications", auditH.ListNotifications)
+	p.Put("/notifications/:id/read", auditH.MarkNotificationRead)
+
+	// Tasks
+	tasks := p.Group("/tasks")
+	tasks.Get("/", auditH.ListTasks)
+	tasks.Post("/", auditH.CreateTask)
+	tasks.Put("/:id", auditH.UpdateTask)
+
+	// Month locks
+	p.Get("/month-locks", auditH.ListMonthLocks)
+	p.Post("/month-locks",
+		middleware.RequirePermission(models.PermMonthLock), auditH.ToggleMonthLock)
+
+	// Recycle bin
+	p.Get("/recycle-bin",
+		middleware.RequirePermission(models.PermRecycleBin), auditH.ListRecycleBin)
+
+	// Documents
+	p.Get("/documents", auditH.ListDocuments)
+	p.Post("/documents", auditH.CreateDocument)
+
+	// Ledger
+	p.Get("/ledger", auditH.GetLedger)
+
+	// Settings (admin only)
+	settings := p.Group("/settings",
+		middleware.RequirePermission(models.PermSettingsManage))
+	settings.Get("/", auditH.GetSettings)
+	settings.Put("/:key", auditH.UpdateSetting)
 }

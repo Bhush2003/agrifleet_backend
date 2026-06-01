@@ -10,7 +10,9 @@ import (
 type UserRole string
 
 const (
+	RoleAdmin      UserRole = "admin"
 	RoleOwner      UserRole = "owner"
+	RoleManager    UserRole = "manager"
 	RoleSupervisor UserRole = "supervisor"
 	RoleDriver     UserRole = "driver"
 	RoleAccountant UserRole = "accountant"
